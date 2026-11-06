@@ -1,0 +1,9 @@
+Coloca aquí tus archivos .mhtml (o .mht) ANTES de compilar la app.
+
+Se cargarán en el orden alfabético/numérico de su nombre de archivo, por ejemplo:
+  pagina01.mhtml
+  pagina02.mhtml
+  pagina10.mhtml
+
+Borra este archivo LEEME.txt o déjalo: no se muestra en el visor (solo se listan
+archivos con extensión .mhtml / .mht).

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_general_notes"
+        android:icon="@drawable/ic_notes"
+        android:title="@string/general_notes"
+        android:showAsAction="always" />
+    <item
+        android:id="@+id/action_toggle_theme"
+        android:icon="@drawable/ic_theme_toggle"
+        android:title="@string/toggle_theme"
+        android:showAsAction="always" />
+</menu>

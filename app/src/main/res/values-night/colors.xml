@@ -1,0 +1,21 @@
+<resources>
+    <!-- Paleta modo oscuro -->
+    <color name="brand_primary">#8381F0</color>
+    <color name="brand_primary_dark">#1A1830</color>
+    <color name="brand_secondary">#2DD4BF</color>
+    <color name="brand_bg">#121218</color>
+    <color name="brand_surface">#1E1E26</color>
+    <color name="brand_on_primary">#FFFFFF</color>
+    <color name="brand_text">#F2F2F5</color>
+    <color name="brand_text_muted">#9A9AA5</color>
+
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="note_bg">#FF8A6D1D</color>
+    <color name="note_border">#FFE0B030</color>
+
+    <color name="page_done_bg">#1F3D28</color>
+    <color name="page_done_accent">#4CC178</color>
+    <color name="page_pending_bg">#3D331A</color>
+    <color name="page_pending_accent">#E0B344</color>
+</resources>

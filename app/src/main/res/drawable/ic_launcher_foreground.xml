@@ -1,0 +1,61 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="512" android:viewportHeight="512">
+
+    <!-- Everything is drawn full-size, then this outer group shrinks and re-centers the
+         whole notepad+pencil composition into the adaptive icon's circular "safe zone"
+         (content outside it gets clipped by round/squircle launcher masks). -->
+    <group android:name="all" android:pivotX="270" android:pivotY="290"
+        android:scaleX="0.52" android:scaleY="0.52"
+        android:translateX="-14" android:translateY="-34">
+
+        <!-- Notepad body -->
+        <path android:fillColor="#FBF4ED"
+            android:pathData="M178,60 L442,60 A28,28 0 0 1 470,88 L470,442 A28,28 0 0 1 442,470 L178,470 A28,28 0 0 1 150,442 L150,88 A28,28 0 0 1 178,60 Z"/>
+
+        <!-- Header band -->
+        <path android:fillColor="#FFC66B"
+            android:pathData="M178,60 L442,60 A28,28 0 0 1 470,88 L470,132 L150,132 L150,88 A28,28 0 0 1 178,60 Z"/>
+        <path android:fillColor="#FFB84D"
+            android:pathData="M442,60 L442,132 L470,132 L470,88 A28,28 0 0 0 442,60 Z"/>
+
+        <!-- Spiral rings -->
+        <path android:fillColor="#A7C9E8" android:pathData="M188,41 H222 V93 H188 Z"/>
+        <path android:fillColor="#A7C9E8" android:pathData="M188,41 A17,17 0 1,1 222,41 A17,17 0 1,1 188,41 Z"/>
+        <path android:fillColor="#A7C9E8" android:pathData="M188,93 A17,17 0 1,1 222,93 A17,17 0 1,1 188,93 Z"/>
+
+        <path android:fillColor="#A7C9E8" android:pathData="M258,41 H292 V93 H258 Z"/>
+        <path android:fillColor="#A7C9E8" android:pathData="M258,41 A17,17 0 1,1 292,41 A17,17 0 1,1 258,41 Z"/>
+        <path android:fillColor="#A7C9E8" android:pathData="M258,93 A17,17 0 1,1 292,93 A17,17 0 1,1 258,93 Z"/>
+
+        <path android:fillColor="#A7C9E8" android:pathData="M328,41 H362 V93 H328 Z"/>
+        <path android:fillColor="#A7C9E8" android:pathData="M328,41 A17,17 0 1,1 362,41 A17,17 0 1,1 328,41 Z"/>
+        <path android:fillColor="#A7C9E8" android:pathData="M328,93 A17,17 0 1,1 362,93 A17,17 0 1,1 328,93 Z"/>
+
+        <path android:fillColor="#A7C9E8" android:pathData="M398,41 H432 V93 H398 Z"/>
+        <path android:fillColor="#A7C9E8" android:pathData="M398,41 A17,17 0 1,1 432,41 A17,17 0 1,1 398,41 Z"/>
+        <path android:fillColor="#A7C9E8" android:pathData="M398,93 A17,17 0 1,1 432,93 A17,17 0 1,1 398,93 Z"/>
+
+        <!-- Text lines -->
+        <path android:fillColor="#2B2B2B" android:pathData="M190,172 H430 V190 H190 Z"/>
+        <path android:fillColor="#2B2B2B" android:pathData="M190,232 H430 V250 H190 Z"/>
+        <path android:fillColor="#2B2B2B" android:pathData="M190,292 H430 V310 H190 Z"/>
+        <path android:fillColor="#2B2B2B" android:pathData="M250,352 H430 V370 H250 Z"/>
+        <path android:fillColor="#2B2B2B" android:pathData="M290,412 H430 V430 H290 Z"/>
+
+        <!-- Pencil, drawn pointing down then rotated into place -->
+        <group android:name="pencil" android:pivotX="0" android:pivotY="0"
+            android:rotation="-42" android:translateX="128" android:translateY="452">
+            <path android:fillColor="#2B2B2B" android:pathData="M0,0 L28,34 L-28,34 Z"/>
+            <path android:fillColor="#AFCCF2" android:pathData="M-28,34 H28 V210 H-28 Z"/>
+            <path android:fillColor="#8FB7EC" android:pathData="M-5,34 H5 V210 H-5 Z"/>
+            <path android:fillColor="#CFCFCF" android:pathData="M-28,210 H28 V226 H-28 Z"/>
+            <path android:fillColor="#F79ABF"
+                android:pathData="M-28,236 A10,10 0 0 1 -18,226 L18,226 A10,10 0 0 1 28,236 L28,260 L-28,260 Z"/>
+            <path android:fillColor="#2B2B2B" android:strokeColor="#2B2B2B" android:strokeWidth="9"
+                android:strokeLineCap="round" android:pathData="M-8,8 L-48,82"/>
+        </group>
+
+    </group>
+
+</vector>

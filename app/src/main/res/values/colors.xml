@@ -1,0 +1,23 @@
+<resources>
+    <!-- Paleta moderna (índigo/teal) -->
+    <color name="brand_primary">#4F46E5</color>
+    <color name="brand_primary_dark">#3730A3</color>
+    <color name="brand_secondary">#14B8A6</color>
+    <color name="brand_bg">#F5F6FA</color>
+    <color name="brand_surface">#FFFFFF</color>
+    <color name="brand_on_primary">#FFFFFF</color>
+    <color name="brand_text">#1E1B2E</color>
+    <color name="brand_text_muted">#6B7280</color>
+
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="note_bg">#FFF9E79F</color>
+    <color name="note_border">#FFB7950B</color>
+
+    <color name="ic_launcher_background">#FFF3E7</color>
+
+    <color name="page_done_bg">#D7F2DD</color>
+    <color name="page_done_accent">#2E9E4F</color>
+    <color name="page_pending_bg">#FDF3CF</color>
+    <color name="page_pending_accent">#C9960C</color>
+</resources>
