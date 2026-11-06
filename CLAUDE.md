@@ -150,7 +150,8 @@ zoom de la página en ese momento (para que la nota no se vea minúscula o gigan
 
 `AnnotationOverlayView` es compartido entre el visor MHTML y el de PDF; distingue el "espacio
 de página" vía `pageMatrix`+`pageSize` (PDF, zoom por Matrix) o `externalScaleProvider` (MHTML,
-zoom nativo del `WebView`, leído con `webView.scale`).
+zoom nativo del `WebView`, actualizado vía `WebViewClient.onScaleChanged` ya que `webView.scale`
+está deprecado desde API 17).
 
 ### 3.5 Grupos de páginas
 
@@ -196,6 +197,22 @@ Las tres activities tienen `android:screenOrientation="portrait"` en el `Android
 - Las notas de página (`MhtmlNote`/`PdfNote`) muestran su fecha de creación en el diálogo de
   edición (`showNoteStyleDialog` en `NoteDialog.kt`, parámetro `createdAt: Long?` — `null`
   para una nota nueva, oculta el campo).
+
+### 3.9 Ciclo de vida y prevención de fugas en ViewPager2 (MhtmlViewerActivity)
+
+- **Cancelación de corrutinas en ViewHolder:** Al deslizar en `ViewPager2`, los `PageHolder`
+  se reciclan y re-vinculan. Si se lanza `lifecycleScope.launch` para colectar el `Flow` de
+  Room sin cancelar el anterior, las corrutinas acumuladas siguen vivas escuchando páginas
+  viejas y sobreescriben el overlay de páginas nuevas. Cada holder gestiona su `observeJob: Job?`
+  y lo cancela explícitamente mediante `unbind()` tanto en `bind()` como en `onViewRecycled`.
+- **Persistencia de estado en UI:** El bloqueo de paso de página (`pageLocked`), necesario
+  para mover/redimensionar notas sin que el `ViewPager2` capture el gesto horizontal, se
+  guarda en `onSaveInstanceState` para no perderse si el sistema recrea la Activity (por
+  ejemplo al alternar el modo oscuro con `ThemePrefs`).
+- **Manejo defensivo y recursos limpios:** Se valida `files.isEmpty()` para no causar estados
+  inconsistentes de navegación (`"0/0"` en vez de `"1/0"`), se usa el recurso formateado
+  `R.string.page_indicator_format` en lugar de concatenaciones en UI, y se usan constantes
+  para los IDs de menú (`MENU_GENERAL_NOTES`, `MENU_ADD_NOTE`, `MENU_LOCK_PAGE`).
 
 ## 4. Convenciones a seguir
 
@@ -249,6 +266,11 @@ cd C:\APP
     crearon desde el botón "+" de un visor, el nombre de la página/PDF de origen — ver §3.8.
     Esto fue la migración v6 (`createdAt` en las 3 tablas de notas) y v7 (`sourcePage` en
     `general_notes`); la base de datos va en versión 7.
+12. Refactor y robustez en `MhtmlViewerActivity`: cancelación explícita de corrutinas en el
+    reciclaje de páginas (`ViewPager2`) para evitar fugas y sobreescrituras cruzadas entre
+    páginas; reemplazo de `webView.scale` (deprecated) por `WebViewClient.onScaleChanged`;
+    persistencia de `pageLocked` en `onSaveInstanceState`; manejo defensivo de lista vacía
+    de archivos y limpieza de IDs mágicos en menús.
 
 Mantén este archivo al día: cada vez que agregues una función no trivial, añade una línea al
 historial y, si introduce una convención o decisión de diseño nueva, documéntala en la §3.

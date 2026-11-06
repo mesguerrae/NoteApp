@@ -1,6 +1,5 @@
 package com.mee.noteapp.ui
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -8,6 +7,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
@@ -20,6 +20,7 @@ import com.mee.noteapp.db.AppDatabase
 import com.mee.noteapp.db.MhtmlNote
 import com.mee.noteapp.db.NoteStyle
 import com.mee.noteapp.mhtml.MhtmlAssetRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 /**
@@ -31,6 +32,10 @@ class MhtmlViewerActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_START_INDEX = "start_index"
+        private const val STATE_PAGE_LOCKED = "state_page_locked"
+        private const val MENU_GENERAL_NOTES = 1
+        private const val MENU_ADD_NOTE = 2
+        private const val MENU_LOCK_PAGE = 3
     }
 
     private val db by lazy { AppDatabase.get(this) }
@@ -46,10 +51,19 @@ class MhtmlViewerActivity : AppCompatActivity() {
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        if (savedInstanceState != null) {
+            pageLocked = savedInstanceState.getBoolean(STATE_PAGE_LOCKED, false)
+        }
+
         files = MhtmlAssetRepository.listOrderedFiles(this)
         pager = findViewById(R.id.pager)
         pager.adapter = MhtmlPagerAdapter(files)
-        pager.setCurrentItem(intent.getIntExtra(EXTRA_START_INDEX, 0), false)
+        pager.isUserInputEnabled = !pageLocked
+
+        val startIndex = intent.getIntExtra(EXTRA_START_INDEX, 0)
+        if (files.isNotEmpty()) {
+            pager.setCurrentItem(startIndex.coerceIn(0, files.size - 1), false)
+        }
 
         val txtIndicator = findViewById<TextView>(R.id.txtPageIndicator)
         val btnPrev = findViewById<ImageButton>(R.id.btnPrevPage)
@@ -58,7 +72,11 @@ class MhtmlViewerActivity : AppCompatActivity() {
         val btnZoomOut = findViewById<ImageButton>(R.id.btnZoomOut)
 
         fun updateIndicator(position: Int) {
-            txtIndicator.text = "${position + 1}/${files.size}"
+            if (files.isEmpty()) {
+                txtIndicator.text = "0/0"
+            } else {
+                txtIndicator.text = getString(R.string.page_indicator_format, position + 1, files.size)
+            }
         }
 
         fun updateTitle(position: Int) {
@@ -80,24 +98,35 @@ class MhtmlViewerActivity : AppCompatActivity() {
         })
 
         btnPrev.setOnClickListener { pager.currentItem = (pager.currentItem - 1).coerceAtLeast(0) }
-        btnNext.setOnClickListener { pager.currentItem = (pager.currentItem + 1).coerceAtMost((files.size - 1).coerceAtLeast(0)) }
+        btnNext.setOnClickListener {
+            pager.currentItem = (pager.currentItem + 1).coerceAtMost((files.size - 1).coerceAtLeast(0))
+        }
         btnZoomIn.setOnClickListener { currentPageHolder()?.zoomIn() }
         btnZoomOut.setOnClickListener { currentPageHolder()?.zoomOut() }
     }
 
-    override fun onSupportNavigateUp(): Boolean { finish(); return true }
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_PAGE_LOCKED, pageLocked)
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
+    }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menu.add(0, 1, 0, R.string.general_notes).apply {
+        menu.add(0, MENU_GENERAL_NOTES, 0, R.string.general_notes).apply {
             setIcon(R.drawable.ic_add)
             setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
         }
-        menu.add(0, 2, 1, R.string.add_note_menu).apply {
+        menu.add(0, MENU_ADD_NOTE, 1, R.string.add_note_menu).apply {
             setIcon(R.drawable.ic_note_add)
             setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
         }
-        lockMenuItem = menu.add(0, 3, 2, R.string.lock_page).apply {
+        lockMenuItem = menu.add(0, MENU_LOCK_PAGE, 2, R.string.lock_page).apply {
             setIcon(if (pageLocked) R.drawable.ic_lock else R.drawable.ic_lock_open)
+            setTitle(if (pageLocked) R.string.unlock_page else R.string.lock_page)
             setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
         }
         return true
@@ -105,14 +134,14 @@ class MhtmlViewerActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            1 -> lifecycleScope.launch {
+            MENU_GENERAL_NOTES -> lifecycleScope.launch {
                 val fileName = files.getOrNull(pager.currentItem)
                 val meta = fileName?.let { db.pageMetaDao().get(it) }
                 val label = meta?.customName?.takeIf { it.isNotBlank() } ?: fileName
                 showGeneralNotesDialog(this@MhtmlViewerActivity, label)
             }
-            2 -> currentPageHolder()?.addNoteViaMenu()
-            3 -> togglePageLock()
+            MENU_ADD_NOTE -> currentPageHolder()?.addNoteViaMenu()
+            MENU_LOCK_PAGE -> togglePageLock()
         }
         return super.onOptionsItemSelected(item)
     }
@@ -150,12 +179,18 @@ class MhtmlViewerActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: PageHolder, position: Int) {
             holder.bind(files[position])
         }
+
+        override fun onViewRecycled(holder: PageHolder) {
+            super.onViewRecycled(holder)
+            holder.unbind()
+        }
     }
 
-    @SuppressLint("SetJavaScriptEnabled")
     private inner class PageHolder(v: View) : RecyclerView.ViewHolder(v) {
         private val webView: WebView = v.findViewById(R.id.webView)
         private val overlay: AnnotationOverlayView = v.findViewById(R.id.overlay)
+        private var observeJob: Job? = null
+        private var currentScale: Float = 1f
 
         init {
             webView.settings.apply {
@@ -166,9 +201,10 @@ class MhtmlViewerActivity : AppCompatActivity() {
                 loadWithOverviewMode = true
             }
             overlay.zoomPanTarget = webView
-            overlay.externalScaleProvider = { webView.scale }
-            webView.webViewClient = object : android.webkit.WebViewClient() {
+            overlay.externalScaleProvider = { currentScale }
+            webView.webViewClient = object : WebViewClient() {
                 override fun onScaleChanged(view: WebView, oldScale: Float, newScale: Float) {
+                    currentScale = newScale
                     overlay.invalidate()
                 }
             }
@@ -180,12 +216,20 @@ class MhtmlViewerActivity : AppCompatActivity() {
         fun zoomOut() { webView.zoomOut(); overlay.invalidate() }
         fun addNoteViaMenu() { overlay.onRequestNewNote?.invoke(0.5f, 0.5f) }
 
+        fun unbind() {
+            observeJob?.cancel()
+            observeJob = null
+        }
+
         fun bind(fileName: String) {
+            unbind()
             webView.loadUrl(MhtmlAssetRepository.assetPath(fileName))
 
-            lifecycleScope.launch {
+            observeJob = lifecycleScope.launch {
                 db.mhtmlNoteDao().observeForFile(fileName).collect { list ->
-                    overlay.notes = list.map { OverlayNote(it.id, it.text, it.xPercent, it.yPercent, it.style, it.sizeScale, it.createdAt) }
+                    overlay.notes = list.map {
+                        OverlayNote(it.id, it.text, it.xPercent, it.yPercent, it.style, it.sizeScale, it.createdAt)
+                    }
                 }
             }
 
@@ -194,7 +238,15 @@ class MhtmlViewerActivity : AppCompatActivity() {
                     lifecycleScope.launch {
                         val now = System.currentTimeMillis()
                         db.mhtmlNoteDao().insert(
-                            MhtmlNote(fileName = fileName, text = text, xPercent = x, yPercent = y, updatedAt = now, style = style, createdAt = now)
+                            MhtmlNote(
+                                fileName = fileName,
+                                text = text,
+                                xPercent = x,
+                                yPercent = y,
+                                updatedAt = now,
+                                style = style,
+                                createdAt = now
+                            )
                         )
                     }
                 }
