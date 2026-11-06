@@ -38,4 +38,5 @@
     <string name="lock_page">Bloquear cambio de página (para editar notas)</string>
     <string name="unlock_page">Desbloquear cambio de página</string>
     <string name="page_locked_hint">Página bloqueada: desliza las notas libremente. Toca el candado para volver a pasar de página.</string>
+    <string name="page_indicator_format">%1$d/%2$d</string>
 </resources>
